@@ -1,62 +1,52 @@
 import os
 import time
 import requests
-import re
 from bs4 import BeautifulSoup
 
-# --- CUSTOM BING SEARCH SCRAPER ---
-class BingScraper:
+# --- ROBUST SEARCH ENGINE SCRAPER ---
+from icrawler.builtin import BingImageCrawler
+from icrawler import ImageDownloader
+
+class CustomBingDownloader(ImageDownloader):
+    #naming convention for not overwritting
+    def get_filename(self, task, default_ext):
+        # We'll use the query_slug and count from the task or instance
+        query_slug = getattr(self, 'query_slug', 'image')
+        timestamp = int(time.time() * 1000)
+        idx = self.fetched_num + 1
+        return f"scraped_bing_{query_slug}_{timestamp}_{idx}.{default_ext}"
+
+class SearchEngineScraper:
     def __init__(self, dataset_dir):
         self.dataset_dir = dataset_dir
-        self.headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
 
     def scrape(self, coral_classes, images_per_keyword):
+
         for class_name, keys in coral_classes.items():
-            class_target_dir = os.path.join(self.dataset_dir, class_name)
-            os.makedirs(class_target_dir, exist_ok=True)
+            class_target_dir = os.path.join(self.dataset_dir, class_name) #creates path if it does not exist
+            os.makedirs(class_target_dir, exist_ok=True) #creates folder if it doesnt exist
 
-            for query in keys:
-                query_slug = query.replace(' ', '_').lower()
-                print(f"\n--- Scraping Bing Search for {class_name}: {query} ---")
+            for query in keys: #for the query in the list of them
+                query_slug = query.replace(' ', '_').lower() #for the filename
+                print(f"\n--- Scraping Bing for {class_name} using query: {query} ---")
                 
-                try:
-                    url = f"https://www.bing.com/images/search?q={query.replace(' ', '+')}"
-                    r = requests.get(url, headers=self.headers, timeout=15)
-                    
-                    # Bing stores image URLs in the 'murl' attribute of JSON blobs within the HTML
-                    pattern = r'murl&quot;:&quot;(.*?)&quot;'
-                    urls = list(set(re.findall(pattern, r.text)))
-                    
-                    # Clean escaped HTML entities in URLs
-                    urls = [u.replace('&amp;', '&') for u in urls]
-                    
-                    if not urls:
-                        print(f"No images found on Bing for {query}")
-                        continue
-                        
-                    downloaded = 0
-                    for img_url in urls:
-                        if downloaded >= images_per_keyword:
-                            break
-                        try:
-                            timestamp = int(time.time() * 1000)
-                            save_name = f"scraped_bing_{query_slug}_{timestamp}_{downloaded}.jpg"
-                            save_path = os.path.join(class_target_dir, save_name)
-                            
-                            img_data = requests.get(img_url, timeout=10).content
-                            with open(save_path, 'wb') as f:
-                                f.write(img_data)
-                            downloaded += 1
-                        except Exception:
-                            continue # Skip failed downloads and try the next one
-                    
-                    print(f"Downloaded {downloaded} images from Bing.")
-                except Exception as e:
-                    print(f"Bing search failed for {query}: {e}")
+                # We use a custom downloader to control the filename and not overwrite images
+                crawler = BingImageCrawler(
+                    downloader_cls=CustomBingDownloader,
+                    storage={'root_dir': class_target_dir}, 
+                    log_level=50
+                )
+                
+                # Set the query_slug on the downloader instance so get_filename can use it
+                crawler.downloader.query_slug = query_slug
 
-# --- UNIVERSAL RETAILER SCRAPER ---
+                crawler.crawl(keyword=query, max_num=images_per_keyword)
+                
+                # Report total for this specific query run
+                downloaded = crawler.downloader.fetched_num
+                print(f"Finished Bing crawl for {query}. Downloaded {downloaded} images.")
+
+#Website scrapper
 class RetailerScraper:
     def __init__(self, dataset_dir):
         self.dataset_dir = dataset_dir
@@ -189,8 +179,8 @@ if __name__ == "__main__":
         ],
         'zoanthid': [
             'zoanthid coral frag', 
-            'zoa colonie reef aquarium', 
-            'zoa rock reef aquarium'
+            'zoa colony reef aquarium', 
+            'zoanthid rock reef aquarium'
         ],
         'montipora': [
             'montipora capricornis', 
@@ -200,8 +190,8 @@ if __name__ == "__main__":
     }
 
     # 1. RUN BROAD SEARCH (BING)
-    bing = BingScraper(TARGET_DIR)
-    bing.scrape(CORAL_CLASSES, IMAGES_PER_KEY)
+    search_scraper = SearchEngineScraper(TARGET_DIR)
+    search_scraper.scrape(CORAL_CLASSES, IMAGES_PER_KEY)
 
     # 2. RUN TARGETED RETAILER SCRAPE
     scraper = RetailerScraper(TARGET_DIR)
@@ -217,3 +207,13 @@ if __name__ == "__main__":
     scraper.scrape_tidal_gardens("https://tidalgardens.com/corals/sps/velvet-corals-montipora.html", "montipora")
 
     print("\nCrawl Complete. Data organized in data/raw/")
+    
+    # Final summary per class
+    print("\n--- Final Dataset Summary ---")
+    for class_name in CORAL_CLASSES.keys():
+        class_dir = os.path.join(TARGET_DIR, class_name)
+        if os.path.exists(class_dir):
+            count = len([f for f in os.listdir(class_dir) if os.path.isfile(os.path.join(class_dir, f))])
+            print(f"Class '{class_name}': {count} total images")
+        else:
+            print(f"Class '{class_name}': 0 images (directory not created)")

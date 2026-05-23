@@ -53,5 +53,7 @@ model.compile(
 model.fit(
   train_ds,
   validation_data=validate_ds,
-  epochs=3
+  epochs=10
 )
+
+model.summary()

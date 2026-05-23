@@ -1,0 +1,31 @@
+PROPOSED IMPROVEMENTS FOR IMAGE CRAWLER
+
+1. CONCURRENCY (Performance)
+   - Implement concurrent image downloads using `concurrent.futures.ThreadPoolExecutor`.
+   - Goal: Significantly reduce total crawling time by parallelizing network I/O.
+   - Requirement: Ensure thread-safe filename generation (e.g., using UUIDs).
+
+2. DUPLICATE DETECTION (Content Hashing)
+   - Calculate MD5/SHA256 hashes of image content before saving.
+   - Goal: Prevent identical images from being saved multiple times across different searches or retailers.
+   - Requirement: Maintain a local database or set of existing hashes.
+
+3. IMAGE VALIDATION
+   - Use the `Pillow` (PIL) library to attempt to open images before final save.
+   - Goal: Filter out corrupt downloads, partial files, or 404 pages served as HTML.
+
+4. DYNAMIC EXTENSIONS
+   - Detect correct file extensions (.jpg, .png, .webp) from the 'Content-Type' header or URL path.
+   - Goal: Avoid hardcoding .jpg and ensure file integrity across different sources.
+
+5. PROGRESS TRACKING
+   - Integrate `tqdm` to provide visual progress bars in the console.
+   - Goal: Improve observability for long-running scraping tasks.
+
+6. CONFIGURATION MANAGEMENT
+   - Move hardcoded coral classes, keywords, and target URLs into an external `config.json` or `config.yaml`.
+   - Goal: Make the crawler easier to maintain and update without modifying code.
+
+7. GLOBAL RETRY LOGIC
+   - Use `urllib3` Retry strategy with the `requests` library.
+   - Goal: Automatically handle transient network errors, timeouts, and 503 Service Unavailable responses.

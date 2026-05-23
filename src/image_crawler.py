@@ -179,7 +179,7 @@ class RetailerScraper:
 # --- MAIN EXECUTION ---
 if __name__ == "__main__":
     TARGET_DIR = "data/raw"
-    IMAGES_PER_KEY = 10
+    IMAGES_PER_KEY = 25
     
     CORAL_CLASSES = {
         'acropora': [

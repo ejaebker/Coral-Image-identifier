@@ -1,7 +1,15 @@
 #dependancies
 import tensorflow as tf
+import matplotlib.pyplot as plt
 
 from tensorflow import keras
+from tensorflow.keras import layers
+from tensorflow.keras.models import Sequential 
+
+#params
+img_height =224
+img_width = 224
+batch_size =32
 
 #import data
 data_dir="data/raw"
@@ -11,28 +19,42 @@ train_ds = tf.keras.utils.image_dataset_from_directory(
     validation_split=0.2,
     subset='training',
     seed=123,
-    image_size=(224,224),
-    batch_size=32
+    image_size=(img_height,img_width),
+    batch_size=batch_size
 )
 validate_ds = tf.keras.utils.image_dataset_from_directory(
     data_dir,
     validation_split=0.2,
     subset='validation',
     seed=123,
-    image_size=(224,224),
-    batch_size=32
+    image_size=(img_height,img_width),
+    batch_size=batch_size
+)
+#data augmentation
+data_augmentation = keras.Sequential(
+  [
+    layers.RandomFlip("horizontal",
+                      input_shape=(img_height,
+                                  img_width,
+                                  3)),
+    layers.RandomRotation(0.1),
+    layers.RandomZoom(0.1),
+    layers.RandomBrightness(factor=0.2),
+    layers.RandomContrast(factor=0.2)
+  ]
 )
 
-normalization_layer = tf.keras.layers.Rescaling(1./255)
-
+#buffered prefetch
 AUTOTUNE = tf.data.AUTOTUNE
-
 train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
 validate_ds = validate_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
+#model Define
 num_classes = 3
+normalization_layer = tf.keras.layers.Rescaling(1./255)
 
 model = tf.keras.Sequential([
+  data_augmentation,   
   tf.keras.layers.Rescaling(1./255),
   tf.keras.layers.Conv2D(32, 3, activation='relu'),
   tf.keras.layers.MaxPooling2D(),
@@ -40,9 +62,10 @@ model = tf.keras.Sequential([
   tf.keras.layers.MaxPooling2D(),
   tf.keras.layers.Conv2D(32, 3, activation='relu'),
   tf.keras.layers.MaxPooling2D(),
+  tf.keras.layers.Dropout(0.2),
   tf.keras.layers.Flatten(),
   tf.keras.layers.Dense(128, activation='relu'),
-  tf.keras.layers.Dense(num_classes)
+  tf.keras.layers.Dense(num_classes, name='outputs')
 ])
 
 model.compile(
@@ -50,10 +73,33 @@ model.compile(
   loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
   metrics=['accuracy'])
 
-model.fit(
+epochs =15
+history=model.fit(
   train_ds,
   validation_data=validate_ds,
-  epochs=10
+  epochs=15
 )
 
 model.summary()
+
+acc = history.history['accuracy']
+val_acc = history.history['val_accuracy']
+
+loss = history.history['loss']
+val_loss = history.history['val_loss']
+
+epochs_range = range(epochs)
+
+plt.figure(figsize=(8, 8))
+plt.subplot(1, 2, 1)
+plt.plot(epochs_range, acc, label='Training Accuracy')
+plt.plot(epochs_range, val_acc, label='Validation Accuracy')
+plt.legend(loc='lower right')
+plt.title('Training and Validation Accuracy')
+
+plt.subplot(1, 2, 2)
+plt.plot(epochs_range, loss, label='Training Loss')
+plt.plot(epochs_range, val_loss, label='Validation Loss')
+plt.legend(loc='upper right')
+plt.title('Training and Validation Loss')
+plt.show()

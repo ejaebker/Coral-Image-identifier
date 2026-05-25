@@ -1,0 +1,40 @@
+{
+    "target_dir": "data/raw",
+    "images_per_keyword": 25,
+    "coral_classes": {
+        "acropora": [
+            "acropora colony",
+            "acropora frag reef tank",
+            "sps acropora coral"
+        ],
+        "zoanthid": [
+            "zoanthid coral frag",
+            "zoa colony reef aquarium",
+            "zoanthid rock reef aquarium"
+        ],
+        "montipora": [
+            "montipora capricornis",
+            "plating montipora colony",
+            "plating montipora frag"
+        ],
+        "frogspawn": [
+            "frogspawn frag",
+            "frogspawn colony",
+            "reef tank large frogspawn"
+        ]
+    },
+    "retailers": {
+        "wwc": [
+            {"collection": "acropora", "target_class": "acropora"},
+            {"collection": "zoanthids", "target_class": "zoanthid"},
+            {"collection": "montipora", "target_class": "montipora"},
+            {"collection": "frogspawn", "target_class": "frogspawn"}
+        ],
+        "tidal_gardens": [
+            {"url": "https://tidalgardens.com/corals/sps/staghorn-corals-acropora.html", "target_class": "acropora"},
+            {"url": "https://tidalgardens.com/corals/zoanthids.html", "target_class": "zoanthid"},
+            {"url": "https://tidalgardens.com/corals/sps/velvet-corals-montipora.html", "target_class": "montipora"},
+            {"url": "https://tidalgardens.com/corals/lps/frogspawn-corals.html", "target_class": "frogspawn"}
+        ]
+    }
+}

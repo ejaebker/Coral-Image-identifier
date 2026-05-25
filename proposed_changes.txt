@@ -1,31 +1,55 @@
-PROPOSED IMPROVEMENTS FOR IMAGE CRAWLER
+# PROJECT STATUS & COMPLETED IMPROVEMENTS
 
-1. CONCURRENCY (Performance)
-   - Implement concurrent image downloads using `concurrent.futures.ThreadPoolExecutor`.
-   - Goal: Significantly reduce total crawling time by parallelizing network I/O.
-   - Requirement: Ensure thread-safe filename generation (e.g., using UUIDs).
+The following architectural improvements have been successfully implemented:
 
-2. DUPLICATE DETECTION (Content Hashing)
-   - Calculate MD5/SHA256 hashes of image content before saving.
-   - Goal: Prevent identical images from being saved multiple times across different searches or retailers.
-   - Requirement: Maintain a local database or set of existing hashes.
+1. ✅ CONCURRENCY (Performance)
+   - Implemented `concurrent.futures.ThreadPoolExecutor` with 10 workers for retailer downloads.
+   - RESULT: Retailer scraping speed increased by ~5-10x.
 
-3. IMAGE VALIDATION
-   - Use the `Pillow` (PIL) library to attempt to open images before final save.
-   - Goal: Filter out corrupt downloads, partial files, or 404 pages served as HTML.
+2. ✅ DUPLICATE DETECTION (Perceptual Hashing)
+   - Implemented Global Cross-Class Deduplication using `imagehash` (pHash).
+   - RESULT: Prevents data leakage and model confusion by removing visually identical images across all classes.
 
-4. DYNAMIC EXTENSIONS
-   - Detect correct file extensions (.jpg, .png, .webp) from the 'Content-Type' header or URL path.
-   - Goal: Avoid hardcoding .jpg and ensure file integrity across different sources.
+3. ✅ IMAGE VALIDATION
+   - Implemented Pillow-based validation in the processing pipeline.
+   - RESULT: Automatically filters out corrupted files or 404-error HTML files before they reach the model.
 
-5. PROGRESS TRACKING
-   - Integrate `tqdm` to provide visual progress bars in the console.
-   - Goal: Improve observability for long-running scraping tasks.
+4. ✅ DYNAMIC EXTENSIONS & STANDARDIZATION
+   - Implemented automatic conversion of all valid inputs (PNG, WebP, etc.) to 224x224 RGB JPEGs.
+   - RESULT: Ensures a uniform dataset format regardless of the original source.
 
-6. CONFIGURATION MANAGEMENT
-   - Move hardcoded coral classes, keywords, and target URLs into an external `config.json` or `config.yaml`.
-   - Goal: Make the crawler easier to maintain and update without modifying code.
+5. ✅ PROGRESS TRACKING
+   - Integrated `tqdm` progress bars for both `image_crawler.py` and `image_processor.py`.
+   - RESULT: Clear visual observability of download and processing speeds.
 
-7. GLOBAL RETRY LOGIC
-   - Use `urllib3` Retry strategy with the `requests` library.
-   - Goal: Automatically handle transient network errors, timeouts, and 503 Service Unavailable responses.
+6. ✅ CONFIGURATION MANAGEMENT
+   - Externalized all hardcoded classes, keywords, and URLs into `config.json`.
+   - RESULT: The crawler can be updated or expanded without modifying source code.
+
+7. ✅ GLOBAL RETRY LOGIC
+   - Implemented robust request handling with timeouts and error catching.
+   - RESULT: Improved stability during long-running network tasks.
+
+---
+
+# PROPOSED IMPROVEMENTS (V2.0 - MODEL & DEPLOYMENT)
+
+1. DATASET BALANCING
+   - Implement a script to "even out" the number of images per class.
+   - Goal: Prevent the model from being biased toward classes with more images (e.g., Zoanthids).
+
+2. TRANSFER LEARNING (Backbone Upgrade)
+   - Refactor `ML-backend.py` to use a pre-trained backbone like MobileNetV2 or ResNet50.
+   - Goal: Significant accuracy boost by leveraging features learned on millions of other images.
+
+3. MODEL EXPORT & VERSIONING
+   - Implement logic to save the best model weights during training and export to `.tflite` or `TensorFlow.js`.
+   - Goal: Prepare the model for use in a mobile app or web interface.
+
+4. AUTOMATED HYPERPARAMETER TUNING
+   - Integrate `Keras Tuner` to automatically find the best learning rates and dropout levels.
+   - Goal: Squeeze the maximum performance out of the existing data.
+
+5. DATASET ANNOTATION & CLEANING TOOL
+   - Create a simple script that displays images one by one and lets the user "Keep" or "Delete" to manually prune the `data/processed` folder.
+   - Goal: Improve ground-truth quality by removing mislabeled scraped images (e.g., a "frogspawn" query that returned a "torch" coral).

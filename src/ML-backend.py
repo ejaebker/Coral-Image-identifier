@@ -62,7 +62,7 @@ train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
 validate_ds = validate_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
 #model Define
-num_classes = 3
+num_classes = 4
 normalization_layer = tf.keras.layers.Rescaling(1./255)
 
 model = tf.keras.Sequential([

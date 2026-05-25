@@ -1,0 +1,11 @@
+pytest
+pytest-mock
+opencv-python
+pillow
+imagehash
+numpy
+requests
+beautifulsoup4
+tqdm
+icrawler
+matplotlib

@@ -43,6 +43,17 @@ For more details, see [PIPELINE.md](./PIPELINE.md) and the [Architecture Diagram
 - **Pipeline Complete**: Full automated scraping and processing pipeline is operational.
 - **Dataset**: ~780 unique, enhanced images processed across 3 classes.
 - **Model**: Basic CNN implemented and training on processed data.
+- **Testing**: Unified `pytest` suite for crawlers and processors.
+
+## 🧪 Running Tests
+To run the automated test suite, ensure you have the dependencies installed and run:
+```bash
+pytest tests/
+```
+If you are using a specific environment (e.g., `tf_env`), ensure it is activated or use:
+```bash
+conda run -n tf_env pytest tests/
+```
 
 ## 🗺️ Roadmap
 - [x] Automated Image Crawling

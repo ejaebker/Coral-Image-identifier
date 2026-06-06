@@ -34,11 +34,20 @@ The pipeline transforms raw, heterogeneous web-scraped images into a standardize
 *   **Action**: Converts all images to RGB and saves them as high-quality JPEGs.
 *   **Purpose**: Removes alpha channels (transparency) and ensures a uniform file format for the training data generator.
 
+### 6. Manual Pruning (Human-in-the-loop)
+*   **Action**: User utilizes `src/cleaner.py` to manually verify scraped images.
+*   **Purpose**: Removes "noise" from web-scraping (e.g., equipment, non-target species) that automated filters might miss.
+
+### 7. Class Balancing (Undersampling)
+*   **Action**: `src/balancer.py` creates a balanced version of the dataset in `data/balanced/`.
+*   **Purpose**: Prevents model bias by ensuring the CNN sees an equal number of samples for each coral species.
+
 ---
 
 ## 📂 Data Flow
 *   **Input**: `data/raw/<class_name>/`
-*   **Output**: `data/processed/<class_name>/`
+*   **Intermediate**: `data/processed/<class_name>/`
+*   **Final Training Set**: `data/balanced/<class_name>/`
 
 ## ⚙️ Configuration
 *   **Image Size**: 224x224

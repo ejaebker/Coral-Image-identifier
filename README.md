@@ -6,58 +6,53 @@ A computer vision system that identifies coral species from photographs.
 This project uses **TensorFlow** and **Keras** to build a deep learning model capable of analyzing images of coral and returning their specific classification (e.g., Acropora, Montipora, Zoanthids).
 
 ## 🛠️ Tech Stack
-- **Deep Learning:** TensorFlow / Keras
+- **Deep Learning:** TensorFlow / Keras, Keras-Tuner
 - **Image Processing:** OpenCV, Pillow, ImageHash, NumPy
+- **Analysis & Stats:** Scikit-Learn, Seaborn, Matplotlib
 - **Data Collection:** BeautifulSoup, icrawler (Bing & Targeted Retailers)
 
 ## 📁 Project Structure
 - `src/image_crawler.py`: Scrapes images from search engines and retailer websites.
 - `src/image_processor.py`: Standardizes, deduplicates, and enhances raw data.
-- `src/ML-backend.py`: Defines and trains the CNN model.
-- `data/raw/`: Original scraped images.
-- `data/processed/`: Cleaned, enhanced, and standardized images ready for training.
+- `src/cleaner.py`: Lightweight UI for manual dataset pruning (Keep/Delete).
+- `src/balancer.py`: Eliminates class bias via random undersampling.
+- `src/evaluator.py`: Modular evaluation suite (Confusion Matrix, Sample Grid).
+- `src/ML-backend.py`: Optimized training with Hyperparameter Tuning and Export.
 
 ## ⚙️ Data Pipeline
-The project features a robust data processing pipeline to handle the challenges of reef photography:
-- **Perceptual Deduplication**: Removes visually identical images cross-class.
-- **CLAHE Enhancement**: Normalizes lighting and enhances textures in LAB color space.
-- **Standardization**: All images are resized to 224x224 RGB JPEGs.
-
-For more details, see [PIPELINE.md](./PIPELINE.md) and the [Architecture Diagram](./DIAGRAM.md).
+The project features a robust data processing pipeline:
+- **Perceptual Deduplication**: Global cross-class duplicate removal.
+- **CLAHE Enhancement**: Normalizes lighting in LAB color space.
+- **Manual Pruning**: Final human-in-the-loop quality check (`cleaner.py`).
+- **Balancing**: Ensures equal representation across all coral classes (`balancer.py`).
 
 ## 🚀 Getting Started
-1. **Crawl Data**:
+1. **Crawl & Process**:
    ```bash
    python src/image_crawler.py
-   ```
-2. **Process Images**:
-   ```bash
    python src/image_processor.py
    ```
-3. **Train Model**:
+2. **Clean & Balance (V2.0)**:
+   ```bash
+   python src/cleaner.py  # Use 'k' to keep, 'd' to delete
+   python src/balancer.py
+   ```
+3. **Train & Export**:
    ```bash
    python src/ML-backend.py
    ```
 
 ## ✅ Current Status
-- **Pipeline Complete**: Full automated scraping and processing pipeline is operational.
-- **Dataset**: ~780 unique, enhanced images processed across 3 classes.
-- **Model**: Basic CNN implemented and training on processed data.
-- **Testing**: Unified `pytest` suite for crawlers and processors.
+- **V2.0 Complete**: Integrated Hyperparameter Tuning, Manual Cleaning, and Dataset Balancing.
+- **Model**: Transfer Learning (MobileNetV2) with automated TFLite/Keras export.
+- **Evaluation**: Comprehensive suite including Confusion Matrices and Prediction Grids.
 
-## 🧪 Running Tests
-To run the automated test suite, ensure you have the dependencies installed and run:
-```bash
-pytest tests/
-```
-If you are using a specific environment (e.g., `tf_env`), ensure it is activated or use:
-```bash
-conda run -n tf_env pytest tests/
-```
-
-## 🗺️ Roadmap
+## Roadmap
 - [x] Automated Image Crawling
 - [x] Robust Image Processing (Deduplication & CLAHE)
-- [ ] Model Optimization & Transfer Learning (MobileNetV2/ResNet)
-- [ ] Export Model for Web/Mobile deployment
+- [x] Model Optimization & Transfer Learning (MobileNetV2)
+- [x] Dataset Balancing & Manual Pruning Tools
+- [x] Automated Hyperparameter Tuning (Keras-Tuner)
+- [x] Export Model for Web/Mobile deployment (.tflite)
 - [ ] Expand dataset to 10+ common reef coral classes
+

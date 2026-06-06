@@ -11,3 +11,5 @@ icrawler
 matplotlib
 scikit-learn
 seaborn
+keras-tuner
+tensorboard

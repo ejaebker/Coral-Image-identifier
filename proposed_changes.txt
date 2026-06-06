@@ -32,24 +32,28 @@ The following architectural improvements have been successfully implemented:
 
 ---
 
-# PROPOSED IMPROVEMENTS (V2.0 - MODEL & DEPLOYMENT)
+# COMPLETED IMPROVEMENTS (V2.0 - MODEL & DEPLOYMENT)
 
-1. DATASET BALANCING
-   - Implement a script to "even out" the number of images per class.
-   - Goal: Prevent the model from being biased toward classes with more images (e.g., Zoanthids).
+1. ✅ DATASET BALANCING
+   - Implemented `src/balancer.py` to perform random undersampling.
+   - RESULT: Prevents model bias and ensures fair evaluation across all classes.
 
-2. TRANSFER LEARNING (Backbone Upgrade)
-   - Refactor `ML-backend.py` to use a pre-trained backbone like MobileNetV2 or ResNet50.
-   - Goal: Significant accuracy boost by leveraging features learned on millions of other images.
+2. ✅ TRANSFER LEARNING (Backbone Upgrade)
+   - Refactored `ML-backend.py` to use MobileNetV2 with pre-trained ImageNet weights.
+   - RESULT: Massive jump in feature extraction capability and baseline accuracy.
 
-3. MODEL EXPORT & VERSIONING
-   - Implement logic to save the best model weights during training and export to `.tflite` or `TensorFlow.js`.
-   - Goal: Prepare the model for use in a mobile app or web interface.
+3. ✅ MODEL EXPORT & VERSIONING
+   - Implemented automated `.keras` artifact saving and `.tflite` conversion.
+   - RESULT: Model is production-ready for mobile, edge, or web deployment.
 
-4. AUTOMATED HYPERPARAMETER TUNING
-   - Integrate `Keras Tuner` to automatically find the best learning rates and dropout levels.
-   - Goal: Squeeze the maximum performance out of the existing data.
+4. ✅ AUTOMATED HYPERPARAMETER TUNING
+   - Integrated `Keras Tuner` (Hyperband) to optimize learning rates and dropout.
+   - RESULT: Scientific optimization of model performance.
 
-5. DATASET ANNOTATION & CLEANING TOOL
-   - Create a simple script that displays images one by one and lets the user "Keep" or "Delete" to manually prune the `data/processed` folder.
-   - Goal: Improve ground-truth quality by removing mislabeled scraped images (e.g., a "frogspawn" query that returned a "torch" coral).
+5. ✅ DATASET ANNOTATION & CLEANING TOOL
+   - Created `src/cleaner.py` for high-speed manual data pruning.
+   - RESULT: Significant improvement in ground-truth quality by removing web-scraped noise.
+
+6. ✅ MODULAR EVALUATION SUITE
+   - Created `src/evaluator.py` for advanced metrics (Confusion Matrix, Precision/Recall).
+   - RESULT: Clear visibility into model strengths and weaknesses.

@@ -42,6 +42,14 @@ The pipeline transforms raw, heterogeneous web-scraped images into a standardize
 *   **Action**: `src/balancer.py` creates a balanced version of the dataset in `data/balanced/`.
 *   **Purpose**: Prevents model bias by ensuring the CNN sees an equal number of samples for each coral species.
 
+### 8. Hyperparameter Tuning
+*   **Action**: `ML-backend.py` uses **Keras Tuner** (Hyperband) to optimize the learning rate and dropout.
+*   *   **Purpose**: Scientifically determines the best configuration for the specific dataset rather than using defaults.
+
+### 9. Comprehensive Evaluation
+*   **Action**: `src/evaluator.py` generates metrics after training.
+*   **Result**: Produces a Confusion Matrix, Classification Report (Precision/Recall), and a visual grid of sample predictions to verify model reliability.
+
 ---
 
 ## 📂 Data Flow

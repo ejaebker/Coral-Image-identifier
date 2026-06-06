@@ -23,11 +23,24 @@ graph TD
         M -->|Save| N(data/processed/)
     end
 
-    subgraph "3. Model Training (ML-backend.py)"
-        N --> O[TensorFlow Dataset Loader]
+    subgraph "3. Refinement & Balancing"
+        N --> N1[cleaner.py]
+        N1 -->|Manually Pruned| N2[balancer.py]
+        N2 -->|Undersampled| B1(data/balanced/)
+    end
+
+    subgraph "4. Model Training (ML-backend.py)"
+        B1 --> O[TensorFlow Dataset Loader]
         O --> P[Data Augmentation]
         P --> Q[CNN Training Loop]
-        Q --> R[Model Metrics & Results]
+        Q --> R[coral_model_best.keras]
+        R --> S[TFLite Export]
+    end
+
+    subgraph "5. Evaluation (evaluator.py)"
+        R --> T[Classification Report]
+        R --> U[Confusion Matrix]
+        R --> V[Sample Prediction Grid]
     end
 ```
 

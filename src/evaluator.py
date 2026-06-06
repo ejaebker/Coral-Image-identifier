@@ -3,14 +3,18 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import classification_report, confusion_matrix
 import tensorflow as tf
+import os
 
-def evaluate_model(model, history, val_ds, class_names):
+def evaluate_model(model, history, val_ds, class_names, output_dir="models/evaluation"):
     """
-    Performs comprehensive evaluation of the trained model.
+    Performs comprehensive evaluation of the trained model and saves results to output_dir.
     """
     print("\n" + "="*50)
-    print("STARTING MODEL EVALUATION")
+    print(f"STARTING MODEL EVALUATION (Saving to {output_dir})")
     print("="*50)
+
+    # Ensure output directory exists
+    os.makedirs(output_dir, exist_ok=True)
 
     # 1. Plot Training History (Accuracy and Loss)
     acc = history.history['accuracy']
@@ -32,7 +36,11 @@ def evaluate_model(model, history, val_ds, class_names):
     plt.legend(loc='upper right')
     plt.title('Training and Validation Loss')
     plt.tight_layout()
-    plt.show()
+    
+    history_path = os.path.join(output_dir, "training_history.png")
+    plt.savefig(history_path)
+    print(f"Saved training history plot to {history_path}")
+    plt.close()
 
     # 2. Extract True Labels and Predictions
     print("\nGenerating predictions for validation set...")
@@ -55,9 +63,15 @@ def evaluate_model(model, history, val_ds, class_names):
             sample_labels = labels.numpy()
             sample_preds = np.argmax(preds, axis=1)
 
-    # 3. Print Classification Report
+    # 3. Print and Save Classification Report
+    report = classification_report(y_true, y_pred, target_names=class_names)
     print("\nClassification Report:")
-    print(classification_report(y_true, y_pred, target_names=class_names))
+    print(report)
+    
+    report_path = os.path.join(output_dir, "classification_report.txt")
+    with open(report_path, "w") as f:
+        f.write(report)
+    print(f"Saved classification report to {report_path}")
 
     # 4. Plot Confusion Matrix
     cm = confusion_matrix(y_true, y_pred)
@@ -67,7 +81,11 @@ def evaluate_model(model, history, val_ds, class_names):
     plt.xlabel('Predicted')
     plt.ylabel('Actual')
     plt.title('Confusion Matrix')
-    plt.show()
+    
+    cm_path = os.path.join(output_dir, "confusion_matrix.png")
+    plt.savefig(cm_path)
+    print(f"Saved confusion matrix plot to {cm_path}")
+    plt.close()
 
     # 5. Plot Sample Predictions Grid (3x3)
     plt.figure(figsize=(10, 10))
@@ -87,7 +105,11 @@ def evaluate_model(model, history, val_ds, class_names):
     
     plt.suptitle("Sample Predictions (Validation Set)", fontsize=16)
     plt.tight_layout()
-    plt.show()
+    
+    samples_path = os.path.join(output_dir, "sample_predictions.png")
+    plt.savefig(samples_path)
+    print(f"Saved sample predictions plot to {samples_path}")
+    plt.close()
 
     print("\n" + "="*50)
     print("EVALUATION COMPLETE")

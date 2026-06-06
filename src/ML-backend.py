@@ -3,6 +3,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import keras_tuner as kt
 import os
+import evaluator
 
 from tensorflow import keras
 from tensorflow.keras import layers
@@ -13,10 +14,12 @@ from tensorflow.keras.callbacks import EarlyStopping
 img_height =224
 img_width = 224
 batch_size =32
+eval_dir = "models/evaluation"
 
 #import data
 data_dir = "data/balanced" if os.path.exists("data/balanced") else "data/processed"
 os.makedirs("models", exist_ok=True)
+os.makedirs(eval_dir, exist_ok=True)
 
 train_ds = tf.keras.utils.image_dataset_from_directory(
     data_dir,
@@ -136,5 +139,4 @@ with open('models/coral_model.tflite', 'wb') as f:
 print("Model saved to models/coral_model.tflite")
 
 # Evaluate model performance
-import evaluator
-evaluator.evaluate_model(model, history, validate_ds, class_names)
+evaluator.evaluate_model(model, history, validate_ds, class_names, output_dir=eval_dir)

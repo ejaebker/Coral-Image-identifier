@@ -13,3 +13,6 @@ scikit-learn
 seaborn
 keras-tuner
 tensorboard
+fastapi
+uvicorn
+python-multipart

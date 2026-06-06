@@ -21,6 +21,36 @@
             "frogspawn frag",
             "frogspawn colony",
             "reef tank large frogspawn"
+        ],
+        "torch": [
+            "torch coral frag reef",
+            "euphyllia glabrescens colony",
+            "aussie torch coral"
+        ],
+        "hammer": [
+            "hammer coral frag",
+            "euphyllia ancora colony",
+            "wall hammer coral reef"
+        ],
+        "chalice": [
+            "chalice coral frag",
+            "echinophyllia coral colony",
+            "rainbow chalice reef tank"
+        ],
+        "scolymia": [
+            "scolymia coral frag",
+            "bleeding apple scoly",
+            "warpaint scoly coral"
+        ],
+        "goniopora": [
+            "goniopora flowerpot coral",
+            "red goniopora frag",
+            "goniopora colony reef"
+        ],
+        "mushroom": [
+            "ricordea mushroom coral",
+            "bounce mushroom reef",
+            "discosoma mushroom colony"
         ]
     },
     "retailers": {
@@ -28,13 +58,25 @@
             {"collection": "acropora", "target_class": "acropora"},
             {"collection": "zoanthids", "target_class": "zoanthid"},
             {"collection": "montipora", "target_class": "montipora"},
-            {"collection": "frogspawn", "target_class": "frogspawn"}
+            {"collection": "frogspawn", "target_class": "frogspawn"},
+            {"collection": "torch", "target_class": "torch"},
+            {"collection": "hammer-frogspawn", "target_class": "hammer"},
+            {"collection": "chalice-coral", "target_class": "chalice"},
+            {"collection": "scolymia", "target_class": "scolymia"},
+            {"collection": "goniopora", "target_class": "goniopora"},
+            {"collection": "mushroom-coral", "target_class": "mushroom"}
         ],
         "tidal_gardens": [
             {"url": "https://tidalgardens.com/corals/sps/staghorn-corals-acropora.html", "target_class": "acropora"},
             {"url": "https://tidalgardens.com/corals/zoanthids.html", "target_class": "zoanthid"},
             {"url": "https://tidalgardens.com/corals/sps/velvet-corals-montipora.html", "target_class": "montipora"},
-            {"url": "https://tidalgardens.com/corals/lps/frogspawn-corals.html", "target_class": "frogspawn"}
+            {"url": "https://tidalgardens.com/corals/lps/frogspawn-corals.html", "target_class": "frogspawn"},
+            {"url": "https://www.tidalgardens.com/corals/lps/torch-corals.html", "target_class": "torch"},
+            {"url": "https://www.tidalgardens.com/corals/lps/hammer-corals.html", "target_class": "hammer"},
+            {"url": "https://www.tidalgardens.com/corals/lps/chalice-corals.html", "target_class": "chalice"},
+            {"url": "https://www.tidalgardens.com/corals/lps/scolymia.html", "target_class": "scolymia"},
+            {"url": "https://www.tidalgardens.com/corals/lps/goniopora.html", "target_class": "goniopora"},
+            {"url": "https://www.tidalgardens.com/corals/mushrooms.html", "target_class": "mushroom"}
         ]
     }
 }

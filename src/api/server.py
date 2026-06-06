@@ -19,7 +19,7 @@ app = FastAPI(title="Coral Image Identifier API")
 
 # --- CONFIGURATION ---
 MODEL_PATH = "models/coral_model_best.keras"
-CLASS_NAMES = ["acropora", "frogspawn", "montipora", "zoanthid"]
+CLASS_NAMES = ["acropora", "chalice", "frogspawn", "goniopora", "hammer", "montipora", "mushroom", "scolymia", "torch", "zoanthid"]
 IMG_SIZE = (224, 224)
 
 # Enable CORS for future frontend integration (e.g., React Flow)

@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from src.image_crawler import SearchEngineScraper, RetailerScraper
+from src.data.crawler import SearchEngineScraper, RetailerScraper
 import os
 
 @pytest.fixture
@@ -13,7 +13,7 @@ def test_search_engine_scraper_init(mock_dataset_dir):
     scraper = SearchEngineScraper(mock_dataset_dir)
     assert scraper.dataset_dir == mock_dataset_dir
 
-@patch('src.image_crawler.BingImageCrawler')
+@patch('src.data.crawler.BingImageCrawler')
 def test_search_engine_scraper_scrape(mock_bing, mock_dataset_dir):
     scraper = SearchEngineScraper(mock_dataset_dir)
     coral_classes = {"acropora": ["acropora colony"]}

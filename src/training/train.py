@@ -3,7 +3,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import keras_tuner as kt
 import os
-import evaluator
+from . import evaluator
 
 from tensorflow import keras
 from tensorflow.keras import layers

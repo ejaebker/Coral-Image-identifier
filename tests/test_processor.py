@@ -2,8 +2,8 @@ import pytest
 import os
 import numpy as np
 from PIL import Image
-from src.image_processor import apply_clahe, process_images
-import src.image_processor as ip
+from src.core.processor import apply_clahe, process_images
+import src.core.processor as ip
 
 def test_apply_clahe():
     # Create a random RGB image

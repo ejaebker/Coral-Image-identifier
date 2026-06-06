@@ -3,7 +3,7 @@
 This document details the architecture and logic of the image processing pipeline used to prepare scraped coral data for machine learning.
 
 ## 🚀 Overview
-The pipeline transforms raw, heterogeneous web-scraped images into a standardized, high-quality dataset optimized for Convolutional Neural Networks (CNNs). It is located in `src/image_processor.py`.
+The pipeline transforms raw, heterogeneous web-scraped images into a standardized, high-quality dataset optimized for Convolutional Neural Networks (CNNs). It is located in `src/core/processor.py`.
 
 ---
 
@@ -35,19 +35,19 @@ The pipeline transforms raw, heterogeneous web-scraped images into a standardize
 *   **Purpose**: Removes alpha channels (transparency) and ensures a uniform file format for the training data generator.
 
 ### 6. Manual Pruning (Human-in-the-loop)
-*   **Action**: User utilizes `src/cleaner.py` to manually verify scraped images.
+*   **Action**: User utilizes `src/data/cleaner.py` to manually verify scraped images.
 *   **Purpose**: Removes "noise" from web-scraping (e.g., equipment, non-target species) that automated filters might miss.
 
 ### 7. Class Balancing (Undersampling)
-*   **Action**: `src/balancer.py` creates a balanced version of the dataset in `data/balanced/`.
+*   **Action**: `src/data/balancer.py` creates a balanced version of the dataset in `data/balanced/`.
 *   **Purpose**: Prevents model bias by ensuring the CNN sees an equal number of samples for each coral species.
 
 ### 8. Hyperparameter Tuning
-*   **Action**: `ML-backend.py` uses **Keras Tuner** (Hyperband) to optimize the learning rate and dropout.
+*   **Action**: `src/training/train.py` uses **Keras Tuner** (Hyperband) to optimize the learning rate and dropout.
 *   *   **Purpose**: Scientifically determines the best configuration for the specific dataset rather than using defaults.
 
 ### 9. Comprehensive Evaluation
-*   **Action**: `src/evaluator.py` generates metrics after training.
+*   **Action**: `src/training/evaluator.py` generates metrics after training.
 *   **Result**: Produces a Confusion Matrix, Classification Report (Precision/Recall), and a visual grid of sample predictions to verify model reliability.
 
 ---

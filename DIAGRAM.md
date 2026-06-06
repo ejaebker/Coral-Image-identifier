@@ -4,13 +4,13 @@ The following diagram illustrates the flow of data from the initial web crawl to
 
 ```mermaid
 graph TD
-    subgraph "1. Data Collection (image_crawler.py)"
+    subgraph "1. Data Collection (src/data/crawler.py)"
         A[Bing Image Search] -->|Scrape| B(data/raw/)
         C[Retailer Sites - Shopify/WWC] -->|Scrape| B
         D[Retailer Sites - Magento/TG] -->|Scrape| B
     end
 
-    subgraph "2. Processing Pipeline (image_processor.py)"
+    subgraph "2. Processing Pipeline (src/core/processor.py)"
         B --> E{Integrity Check}
         E -->|Corrupted| F[Discard]
         E -->|Valid| G[Perceptual Hash]
@@ -24,12 +24,12 @@ graph TD
     end
 
     subgraph "3. Refinement & Balancing"
-        N --> N1[cleaner.py]
-        N1 -->|Manually Pruned| N2[balancer.py]
+        N --> N1[src/data/cleaner.py]
+        N1 -->|Manually Pruned| N2[src/data/balancer.py]
         N2 -->|Undersampled| B1(data/balanced/)
     end
 
-    subgraph "4. Model Training (ML-backend.py)"
+    subgraph "4. Model Training (src/training/train.py)"
         B1 --> O[TensorFlow Dataset Loader]
         O --> P[Data Augmentation]
         P --> Q[CNN Training Loop]
@@ -37,7 +37,7 @@ graph TD
         R --> S[TFLite Export]
     end
 
-    subgraph "5. Evaluation (evaluator.py)"
+    subgraph "5. Evaluation (src/training/evaluator.py)"
         R --> T[Classification Report]
         R --> U[Confusion Matrix]
         R --> V[Sample Prediction Grid]

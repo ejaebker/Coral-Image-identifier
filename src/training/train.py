@@ -3,7 +3,10 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import keras_tuner as kt
 import os
-from . import evaluator
+try:
+    from . import evaluator
+except ImportError:
+    import evaluator
 
 from tensorflow import keras
 from tensorflow.keras import layers
@@ -11,53 +14,45 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.callbacks import EarlyStopping 
 
 #params
-img_height =224
+img_height = 224
 img_width = 224
-batch_size =32
+batch_size = 32
 eval_dir = "models/evaluation"
 
-#import data
-data_dir = "data/balanced" if os.path.exists("data/balanced") else "data/processed"
-os.makedirs("models", exist_ok=True)
-os.makedirs(eval_dir, exist_ok=True)
+def load_data():
+    #import data
+    data_dir = "data/balanced" if os.path.exists("data/balanced") else "data/processed"
+    os.makedirs("models", exist_ok=True)
+    os.makedirs(eval_dir, exist_ok=True)
 
-train_ds = tf.keras.utils.image_dataset_from_directory(
-    data_dir,
-    validation_split=0.2,
-    subset='training',
-    seed=123,
-    image_size=(img_height,img_width),
-    batch_size=batch_size
-)
-class_names = train_ds.class_names
-num_classes = len(class_names)
-validate_ds = tf.keras.utils.image_dataset_from_directory(
-    data_dir,
-    validation_split=0.2,
-    subset='validation',
-    seed=123,
-    image_size=(img_height,img_width),
-    batch_size=batch_size
-)
-#epoch tune
-early_stopping=tf.keras.callbacks.EarlyStopping(
-    monitor='val_loss',
-    min_delta=0,
-    patience=3,
-    verbose=0,
-    mode='auto',
-    baseline=None,
-    restore_best_weights=True,
-    start_from_epoch=0
-)
-
-#buffered prefetch
-AUTOTUNE = tf.data.AUTOTUNE
-train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
-validate_ds = validate_ds.cache().prefetch(buffer_size=AUTOTUNE)
+    train_ds = tf.keras.utils.image_dataset_from_directory(
+        data_dir,
+        validation_split=0.2,
+        subset='training',
+        seed=123,
+        image_size=(img_height,img_width),
+        batch_size=batch_size
+    )
+    class_names = train_ds.class_names
+    num_classes = len(class_names)
+    validate_ds = tf.keras.utils.image_dataset_from_directory(
+        data_dir,
+        validation_split=0.2,
+        subset='validation',
+        seed=123,
+        image_size=(img_height,img_width),
+        batch_size=batch_size
+    )
+    
+    #buffered prefetch
+    AUTOTUNE = tf.data.AUTOTUNE
+    train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
+    validate_ds = validate_ds.cache().prefetch(buffer_size=AUTOTUNE)
+    
+    return train_ds, validate_ds, class_names, num_classes
 
 #model Define
-def build_model(hp):
+def build_model(hp, num_classes):
   # Tunable hyperparameters
   dropout_rate = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
   learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
@@ -91,52 +86,70 @@ def build_model(hp):
   
   return model
 
-# Initialize Tuner
-tuner = kt.Hyperband(
-    build_model,
-    objective='val_accuracy',
-    max_epochs=10,
-    directory='models/tuner_logs',
-    project_name='coral_classification'
-)
+def run_training():
+    train_ds, validate_ds, class_names, num_classes = load_data()
 
-# Execute Tuning
-print("\nStarting Hyperparameter Tuning...")
-tuner.search(train_ds, validation_data=validate_ds, callbacks=[early_stopping])
+    #epoch tune
+    early_stopping=tf.keras.callbacks.EarlyStopping(
+        monitor='val_loss',
+        min_delta=0,
+        patience=3,
+        verbose=0,
+        mode='auto',
+        baseline=None,
+        restore_best_weights=True,
+        start_from_epoch=0
+    )
 
-# Get best hyperparameters and final train
-best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
-print(f"\nBest Dropout: {best_hps.get('dropout')}")
-print(f"Best Learning Rate: {best_hps.get('learning_rate')}")
+    # Initialize Tuner
+    tuner = kt.Hyperband(
+        lambda hp: build_model(hp, num_classes),
+        objective='val_accuracy',
+        max_epochs=10,
+        directory='models/tuner_logs',
+        project_name='coral_classification'
+    )
 
-model = tuner.hypermodel.build(best_hps)
+    # Execute Tuning
+    print("\nStarting Hyperparameter Tuning...")
+    tuner.search(train_ds, validation_data=validate_ds, callbacks=[early_stopping])
 
-# Model Checkpoint for best weights
-checkpoint_path = "models/coral_model_best.keras"
-cp_callback = tf.keras.callbacks.ModelCheckpoint(
-    filepath=checkpoint_path,
-    save_best_only=True,
-    monitor='val_accuracy',
-    mode='max'
-)
+    # Get best hyperparameters and final train
+    best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+    print(f"\nBest Dropout: {best_hps.get('dropout')}")
+    print(f"Best Learning Rate: {best_hps.get('learning_rate')}")
 
-epochs = 20
-history = model.fit(
-  train_ds,
-  validation_data=validate_ds,
-  epochs=epochs,
-  callbacks=[early_stopping, cp_callback]
-)
+    model = tuner.hypermodel.build(best_hps)
 
-model.summary()
+    # Model Checkpoint for best weights
+    checkpoint_path = "models/coral_model_best.keras"
+    cp_callback = tf.keras.callbacks.ModelCheckpoint(
+        filepath=checkpoint_path,
+        save_best_only=True,
+        monitor='val_accuracy',
+        mode='max'
+    )
 
-# Export to TFLite for deployment
-print("\nExporting model to TFLite...")
-converter = tf.lite.TFLiteConverter.from_keras_model(model)
-tflite_model = converter.convert()
-with open('models/coral_model.tflite', 'wb') as f:
-    f.write(tflite_model)
-print("Model saved to models/coral_model.tflite")
+    epochs = 20
+    history = model.fit(
+      train_ds,
+      validation_data=validate_ds,
+      epochs=epochs,
+      callbacks=[early_stopping, cp_callback]
+    )
 
-# Evaluate model performance
-evaluator.evaluate_model(model, history, validate_ds, class_names, output_dir=eval_dir)
+    model.summary()
+
+    # Export to TFLite for deployment
+    print("\nExporting model to TFLite...")
+    converter = tf.lite.TFLiteConverter.from_keras_model(model)
+    tflite_model = converter.convert()
+    with open('models/coral_model.tflite', 'wb') as f:
+        f.write(tflite_model)
+    print("Model saved to models/coral_model.tflite")
+
+    # Evaluate model performance
+    evaluator.evaluate_model(model, history, validate_ds, class_names, output_dir=eval_dir)
+
+if __name__ == "__main__":
+    run_training()

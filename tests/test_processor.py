@@ -1,7 +1,14 @@
 import pytest
 import os
+import sys
 import numpy as np
 from PIL import Image
+
+# --- PATH FIX ---
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from src.core.processor import apply_clahe, process_images
 import src.core.processor as ip
 

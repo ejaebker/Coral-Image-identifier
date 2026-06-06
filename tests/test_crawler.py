@@ -1,7 +1,14 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from src.data.crawler import SearchEngineScraper, RetailerScraper
 import os
+import sys
+
+# --- PATH FIX ---
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+from src.data.crawler import SearchEngineScraper, RetailerScraper
 
 @pytest.fixture
 def mock_dataset_dir(tmp_path):

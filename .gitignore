@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Environments
+.venv/
+env/
+venv/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+
+# Project Specific
+data/raw/
+data/processed/
+data/balanced/
+data/trash/
+models/tuner_logs/
+proposed_changes.txt
+
+# OS
+.DS_Store
+Thumbs.db

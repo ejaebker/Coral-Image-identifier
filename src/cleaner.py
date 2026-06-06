@@ -35,23 +35,39 @@ def clean_dataset():
     total = len(all_images)
     current_idx = 0
 
-    plt.ion() # Turn on interactive mode
     fig, ax = plt.subplots(figsize=(8, 8))
+
+    def update_display():
+        nonlocal current_idx
+        while current_idx < total:
+            img_path = all_images[current_idx]
+            try:
+                img = Image.open(img_path)
+                ax.clear()
+                ax.imshow(img)
+                ax.set_title(f"Image {current_idx+1}/{total}\n{os.path.basename(img_path)}")
+                ax.axis('off')
+                fig.canvas.draw()
+                return
+            except Exception as e:
+                print(f"Error opening {img_path}: {e}")
+                current_idx += 1
+        plt.close()
 
     def on_key(event):
         nonlocal current_idx
         
-        if event.key == 'q' or event.key == 'escape':
+        if event.key in ['q', 'escape']:
             plt.close()
             current_idx = total # Signal exit
             return
 
-        if event.key == 'k' or event.key == 'right':
+        if event.key in ['k', 'right']:
             print(f"[{current_idx+1}/{total}] Kept: {os.path.basename(all_images[current_idx])}")
             current_idx += 1
-            plt.close()
+            update_display()
 
-        elif event.key == 'd' or event.key == 'delete' or event.key == 'backspace':
+        elif event.key in ['d', 'delete', 'backspace']:
             img_path = all_images[current_idx]
             rel_path = os.path.relpath(img_path, PROCESSED_DIR)
             trash_path = os.path.join(TRASH_DIR, rel_path)
@@ -64,25 +80,11 @@ def clean_dataset():
             print(f"[{current_idx+1}/{total}] DELETED: {os.path.basename(img_path)}")
             
             current_idx += 1
-            plt.close()
+            update_display()
 
-    while current_idx < total:
-        img_path = all_images[current_idx]
-        try:
-            img = Image.open(img_path)
-            ax.clear()
-            ax.imshow(img)
-            ax.set_title(f"Image {current_idx+1}/{total}\n{os.path.basename(img_path)}")
-            ax.axis('off')
-            
-            # Connect the key event and wait
-            cid = fig.canvas.mpl_connect('key_press_event', on_key)
-            plt.show(block=True)
-            fig.canvas.mpl_disconnect(cid)
-            
-        except Exception as e:
-            print(f"Error opening {img_path}: {e}")
-            current_idx += 1
+    fig.canvas.mpl_connect('key_press_event', on_key)
+    update_display()
+    plt.show()
 
     print("\n" + "="*50)
     print("CLEANING SESSION FINISHED")

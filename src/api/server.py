@@ -1,6 +1,14 @@
 import io
 import os
+import sys
 import numpy as np
+
+# --- PATH FIX FOR DIRECT EXECUTION ---
+# This allows running the script directly from the api folder or the root
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 import tensorflow as tf
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware

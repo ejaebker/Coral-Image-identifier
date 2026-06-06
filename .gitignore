@@ -6,6 +6,7 @@ __pycache__/
 .ipynb_checkpoints/
 
 # Environments
+tf_env/
 .venv/
 env/
 venv/

@@ -1,0 +1,10 @@
+              precision    recall  f1-score   support
+
+    acropora       0.78      0.78      0.78        32
+   frogspawn       0.73      0.73      0.73        11
+   montipora       0.85      0.85      0.85        33
+    zoanthid       0.97      0.97      0.97        69
+
+    accuracy                           0.88       145
+   macro avg       0.83      0.83      0.83       145
+weighted avg       0.88      0.88      0.88       145

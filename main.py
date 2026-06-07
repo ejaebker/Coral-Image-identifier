@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from src.data.crawler import run_crawler
 from src.core.processor import process_images
+from src.data.cleaner import clean_dataset
 from src.data.balancer import balance_dataset
 from src.training.train import run_training
 
@@ -16,24 +17,29 @@ def main():
     print("="*60)
 
     # 1. CRAWLING
-    print("\n[STEP 1/4] Starting Data Acquisition...")
+    print("\n[STEP 1/5] Starting Data Acquisition...")
     run_crawler()
 
     # 2. PROCESSING
-    print("\n[STEP 2/4] Starting Image Processing (Enhance & Resize)...")
+    print("\n[STEP 2/5] Starting Image Processing (Enhance & Resize)...")
     process_images()
 
-    # NOTE: Manual cleaning (src/data/cleaner.py) is skipped here 
-    # because it requires user interaction.
-    print("\n[SKIP] Manual Cleaning step requires user interaction.")
-    print("       If you want to prune data, run: python src/data/cleaner.py")
+    # 3. MANUAL CLEANING
+    print("\n[STEP 3/5] Starting Manual Pruning...")
+    print("       A window will open. Use [K] to keep and [D] to delete.")
+    print("       Close the window or press [Q] when finished.")
+    clean_dataset()
 
-    # 3. BALANCING
-    print("\n[STEP 3/4] Starting Dataset Balancing...")
+    # 4. BALANCING
+    print("\n[STEP 4/5] Starting Dataset Balancing...")
     balance_dataset()
 
-    # 4. TRAINING
-    print("\n[STEP 4/4] Starting Model Training & Hyperparameter Tuning...")
+    # 5. TRAINING
+    print("\n" + "-"*40)
+    print("📝 DATA PREPARATION COMPLETE.")
+    input("👉 Press [ENTER] to start Model Training & Hyperparameter Tuning (or Ctrl+C to stop)...")
+    
+    print("\n[STEP 5/5] Starting Training...")
     run_training()
 
     print("\n" + "="*60)

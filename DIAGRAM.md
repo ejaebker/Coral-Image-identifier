@@ -23,16 +23,15 @@ graph TD
         M -->|Save| N(data/processed/)
     end
 
-    subgraph "3. Refinement & Balancing"
+    subgraph "3. Refinement"
         N --> N1[src/data/cleaner.py]
-        N1 -->|Manually Pruned| N2[src/data/balancer.py]
-        N2 -->|Undersampled| B1(data/balanced/)
+        N1 -->|Manually Pruned| N(data/processed/)
     end
 
     subgraph "4. Model Training (src/training/train.py)"
-        B1 --> O[TensorFlow Dataset Loader]
+        N --> O[TensorFlow Dataset Loader]
         O --> P[Data Augmentation]
-        P --> Q[CNN Training Loop]
+        P --> Q[CNN Training Loop (Class Weights)]
         Q --> R[coral_model_best.keras]
         R --> S[TFLite Export]
     end

@@ -38,13 +38,13 @@ The pipeline transforms raw, heterogeneous web-scraped images into a standardize
 *   **Action**: User utilizes `src/data/cleaner.py` to manually verify scraped images.
 *   **Purpose**: Removes "noise" from web-scraping (e.g., equipment, non-target species) that automated filters might miss.
 
-### 7. Class Balancing (Undersampling)
-*   **Action**: `src/data/balancer.py` creates a balanced version of the dataset in `data/balanced/`.
-*   **Purpose**: Prevents model bias by ensuring the CNN sees an equal number of samples for each coral species.
+### 7. Class Weighting (Mathematical Balancing)
+*   **Action**: `src/training/train.py` calculates distribution weights for each class using `sklearn`.
+*   **Purpose**: Instead of deleting images to balance the dataset, we "penalize" the model more for misclassifying minority classes. This allows the model to learn from the **entire** dataset without bias.
 
 ### 8. Hyperparameter Tuning
 *   **Action**: `src/training/train.py` uses **Keras Tuner** (Hyperband) to optimize the learning rate and dropout.
-*   *   **Purpose**: Scientifically determines the best configuration for the specific dataset rather than using defaults.
+*   **Purpose**: Scientifically determines the best configuration for the specific dataset rather than using defaults.
 
 ### 9. Comprehensive Evaluation
 *   **Action**: `src/training/evaluator.py` generates metrics after training.
@@ -55,7 +55,7 @@ The pipeline transforms raw, heterogeneous web-scraped images into a standardize
 ## 📂 Data Flow
 *   **Input**: `data/raw/<class_name>/`
 *   **Intermediate**: `data/processed/<class_name>/`
-*   **Final Training Set**: `data/balanced/<class_name>/`
+*   **Final Training Set**: `data/processed/` (with mathematical weighting)
 
 ## ⚙️ Configuration
 *   **Image Size**: 224x224

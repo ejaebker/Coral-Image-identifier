@@ -75,7 +75,7 @@
             {"url": "https://www.tidalgardens.com/corals/lps/hammer-corals.html", "target_class": "hammer"},
             {"url": "https://tidalgardens.com/corals/lps/chalice-corals-echinopora.html", "target_class": "chalice"},
             {"url": "https://tidalgardens.com/corals/lps/scolymia-meat-corals-scolymia.html", "target_class": "scolymia"},
-            {"url": "https://tidalgardens.com/corals/lps/flower-pot-corals-goniopora.htmlZ", "target_class": "goniopora"},
+            {"url": "https://tidalgardens.com/corals/lps/flower-pot-corals-goniopora.html", "target_class": "goniopora"},
             {"url": "https://www.tidalgardens.com/corals/mushrooms.html", "target_class": "mushroom"}
         ]
     }

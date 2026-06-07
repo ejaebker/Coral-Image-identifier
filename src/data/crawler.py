@@ -170,8 +170,7 @@ class RetailerScraper:
                 success_count += future.result()
         return success_count
 
-# --- MAIN EXECUTION ---
-if __name__ == "__main__":
+def run_crawler():
     # Load Configuration
     with open("config.json", "r") as f:
         config = json.load(f)
@@ -207,3 +206,7 @@ if __name__ == "__main__":
             print(f"Class '{class_name}': {count} total images")
         else:
             print(f"Class '{class_name}': 0 images (directory not created)")
+
+# --- MAIN EXECUTION ---
+if __name__ == "__main__":
+    run_crawler()

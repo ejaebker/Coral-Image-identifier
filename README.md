@@ -42,7 +42,14 @@ python src/api/server.py
 ```
 *   **Test it**: Open [http://localhost:8000/docs](http://localhost:8000/docs) in your browser to use the interactive dashboard.
 
-### 3. Full Data Pipeline (For retraining)
+### 3. Full Data Pipeline (Master Script)
+To run the entire workflow (Crawl -> Process -> Balance -> Train -> Evaluate) with one command:
+```bash
+python main.py
+```
+*   **Note**: This will skip the manual cleaning step. To manually prune data, run `python src/data/cleaner.py` before Step 3.
+
+### 4. Manual Execution (Sub-stages)
 1. **Crawl & Process**:
    ```bash
    python src/data/crawler.py

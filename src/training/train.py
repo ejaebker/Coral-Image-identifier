@@ -3,6 +3,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import keras_tuner as kt
 import os
+import json
 try:
     from . import evaluator
 except ImportError:
@@ -35,6 +36,11 @@ def load_data():
     )
     class_names = train_ds.class_names
     num_classes = len(class_names)
+    
+    # Save class names for the API to use
+    with open("models/classes.json", "w") as f:
+        json.dump(class_names, f)
+    print(f"Saved {num_classes} class labels to models/classes.json")
     validate_ds = tf.keras.utils.image_dataset_from_directory(
         data_dir,
         validation_split=0.2,

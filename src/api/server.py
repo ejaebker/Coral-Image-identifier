@@ -1,6 +1,7 @@
 import io
 import os
 import sys
+import json
 import numpy as np
 
 # --- PATH FIX FOR DIRECT EXECUTION ---
@@ -19,8 +20,29 @@ app = FastAPI(title="Coral Image Identifier API")
 
 # --- CONFIGURATION ---
 MODEL_PATH = "models/coral_model_best.keras"
-CLASS_NAMES = ["acropora", "chalice", "frogspawn", "goniopora", "hammer", "montipora", "mushroom", "scolymia", "torch", "zoanthid"]
+CLASSES_PATH = "models/classes.json"
+CONFIG_PATH = "config.json"
 IMG_SIZE = (224, 224)
+
+# Global variables
+model = None
+CLASS_NAMES = []
+
+def get_class_names():
+    """Dynamically determines class names from available metadata or config."""
+    # 1. Try loading from training artifact (Best way)
+    if os.path.exists(CLASSES_PATH):
+        with open(CLASSES_PATH, "r") as f:
+            return json.load(f)
+    
+    # 2. Fallback to config.json
+    if os.path.exists(CONFIG_PATH):
+        with open(CONFIG_PATH, "r") as f:
+            config = json.load(f)
+            return sorted(config.get("coral_classes", {}).keys())
+    
+    # 3. Last resort default
+    return ["acropora", "frogspawn", "montipora", "zoanthid"]
 
 # Enable CORS for future frontend integration (e.g., React Flow)
 app.add_middleware(
@@ -31,14 +53,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Global model variable
-model = None
-
 @app.on_event("startup")
-async def load_model():
-    global model
+async def startup_event():
+    global model, CLASS_NAMES
+    
+    # Load class names
+    CLASS_NAMES = get_class_names()
+    print(f"Loaded {len(CLASS_NAMES)} classes: {CLASS_NAMES}")
+    
+    # Load model
     if not os.path.exists(MODEL_PATH):
-        raise FileNotFoundError(f"Model not found at {MODEL_PATH}. Please train the model first.")
+        print(f"WARNING: Model not found at {MODEL_PATH}. Prediction endpoint will fail.")
+        return
     
     print(f"Loading model from {MODEL_PATH}...")
     model = tf.keras.models.load_model(MODEL_PATH)

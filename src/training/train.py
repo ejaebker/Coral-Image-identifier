@@ -14,6 +14,9 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.callbacks import EarlyStopping 
 
+from sklearn.utils import class_weight
+import numpy as np
+
 #params
 img_height = 224
 img_width = 224
@@ -21,8 +24,8 @@ batch_size = 32
 eval_dir = "models/evaluation"
 
 def load_data():
-    #import data
-    data_dir = "data/balanced" if os.path.exists("data/balanced") else "data/processed"
+    #import data - Use PROCESSED instead of balanced
+    data_dir = "data/processed"
     os.makedirs("models", exist_ok=True)
     os.makedirs(eval_dir, exist_ok=True)
 
@@ -37,10 +40,22 @@ def load_data():
     class_names = train_ds.class_names
     num_classes = len(class_names)
     
+    # --- CALCULATE CLASS WEIGHTS ---
+    # We get labels from the training dataset to calculate distribution
+    y_train = np.concatenate([y for x, y in train_ds], axis=0)
+    weights = class_weight.compute_class_weight(
+        class_weight='balanced',
+        classes=np.unique(y_train),
+        y=y_train
+    )
+    class_weight_dict = dict(enumerate(weights))
+    print(f"Calculated Class Weights: {class_weight_dict}")
+
     # Save class names for the API to use
     with open("models/classes.json", "w") as f:
         json.dump(class_names, f)
     print(f"Saved {num_classes} class labels to models/classes.json")
+    
     validate_ds = tf.keras.utils.image_dataset_from_directory(
         data_dir,
         validation_split=0.2,
@@ -55,7 +70,7 @@ def load_data():
     train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
     validate_ds = validate_ds.cache().prefetch(buffer_size=AUTOTUNE)
     
-    return train_ds, validate_ds, class_names, num_classes
+    return train_ds, validate_ds, class_names, num_classes, class_weight_dict
 
 #model Define
 def build_model(hp, num_classes):
@@ -93,7 +108,7 @@ def build_model(hp, num_classes):
   return model
 
 def run_training():
-    train_ds, validate_ds, class_names, num_classes = load_data()
+    train_ds, validate_ds, class_names, num_classes, class_weight_dict = load_data()
 
     #epoch tune
     early_stopping=tf.keras.callbacks.EarlyStopping(
@@ -141,7 +156,8 @@ def run_training():
       train_ds,
       validation_data=validate_ds,
       epochs=epochs,
-      callbacks=[early_stopping, cp_callback]
+      callbacks=[early_stopping, cp_callback],
+      class_weight=class_weight_dict
     )
 
     model.summary()

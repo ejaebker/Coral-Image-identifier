@@ -61,7 +61,7 @@
             {"collection": "frogspawn", "target_class": "frogspawn"},
             {"collection": "torch", "target_class": "torch"},
             {"collection": "hammer-frogspawn", "target_class": "hammer"},
-            {"collection": "chalice-coral", "target_class": "chalice"},
+            {"collection": "chalices", "target_class": "chalice"},
             {"collection": "scolymia", "target_class": "scolymia"},
             {"collection": "goniopora", "target_class": "goniopora"},
             {"collection": "mushroom-coral", "target_class": "mushroom"}
@@ -73,9 +73,9 @@
             {"url": "https://tidalgardens.com/corals/lps/frogspawn-corals.html", "target_class": "frogspawn"},
             {"url": "https://www.tidalgardens.com/corals/lps/torch-corals.html", "target_class": "torch"},
             {"url": "https://www.tidalgardens.com/corals/lps/hammer-corals.html", "target_class": "hammer"},
-            {"url": "https://www.tidalgardens.com/corals/lps/chalice-corals.html", "target_class": "chalice"},
-            {"url": "https://www.tidalgardens.com/corals/lps/scolymia.html", "target_class": "scolymia"},
-            {"url": "https://www.tidalgardens.com/corals/lps/goniopora.html", "target_class": "goniopora"},
+            {"url": "https://tidalgardens.com/corals/lps/chalice-corals-echinopora.html", "target_class": "chalice"},
+            {"url": "https://tidalgardens.com/corals/lps/scolymia-meat-corals-scolymia.html", "target_class": "scolymia"},
+            {"url": "https://tidalgardens.com/corals/lps/flower-pot-corals-goniopora.htmlZ", "target_class": "goniopora"},
             {"url": "https://www.tidalgardens.com/corals/mushrooms.html", "target_class": "mushroom"}
         ]
     }

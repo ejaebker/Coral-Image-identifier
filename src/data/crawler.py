@@ -180,20 +180,44 @@ def run_crawler():
     CORAL_CLASSES = config.get("coral_classes", {})
     RETAILERS = config.get("retailers", {})
 
-    # 1. RUN BROAD SEARCH (BING)
-    search_scraper = SearchEngineScraper(TARGET_DIR)
-    search_scraper.scrape(CORAL_CLASSES, IMAGES_PER_KEY)
+    # Determine which classes actually need scraping
+    active_coral_classes = {}
+    for class_name, queries in CORAL_CLASSES.items():
+        class_dir = os.path.join(TARGET_DIR, class_name)
+        if os.path.exists(class_dir) and len(os.listdir(class_dir)) > 0:
+            print(f"  [SKIP] Class '{class_name}' already has data in {TARGET_DIR}. Skipping Bing scrape.")
+        else:
+            active_coral_classes[class_name] = queries
+
+    # 1. RUN BROAD SEARCH (BING) - Only for active classes
+    if active_coral_classes:
+        search_scraper = SearchEngineScraper(TARGET_DIR)
+        search_scraper.scrape(active_coral_classes, IMAGES_PER_KEY)
+    else:
+        print("\n[INFO] All coral classes already have Bing data. No new scraping needed.")
 
     # 2. RUN TARGETED RETAILER SCRAPE
     scraper = RetailerScraper(TARGET_DIR)
     
     # World Wide Corals (WWC)
     for entry in RETAILERS.get("wwc", []):
-        scraper.scrape_wwc(entry["collection"], entry["target_class"])
+        target_class = entry["target_class"]
+        class_dir = os.path.join(TARGET_DIR, target_class)
+        # We check if retailer files (prefixed with 'wwc') already exist to avoid duplicates
+        if os.path.exists(class_dir) and any(f.startswith("scraped_wwc") for f in os.listdir(class_dir)):
+            print(f"  [SKIP] WWC data already exists for '{target_class}'.")
+            continue
+        scraper.scrape_wwc(entry["collection"], target_class)
     
     # Tidal Gardens
     for entry in RETAILERS.get("tidal_gardens", []):
-        scraper.scrape_tidal_gardens(entry["url"], entry["target_class"])
+        target_class = entry["target_class"]
+        class_dir = os.path.join(TARGET_DIR, target_class)
+        # Check for 'tg' prefix
+        if os.path.exists(class_dir) and any(f.startswith("scraped_tg") for f in os.listdir(class_dir)):
+            print(f"  [SKIP] Tidal Gardens data already exists for '{target_class}'.")
+            continue
+        scraper.scrape_tidal_gardens(entry["url"], target_class)
 
     print("\nCrawl Complete. Data organized in data/raw/")
     

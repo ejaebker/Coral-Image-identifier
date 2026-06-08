@@ -1,0 +1,97 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+@theme {
+  --color-brand-deep: oklch(25.32% 0.038 29.87);
+  --color-brand-sand: oklch(98.51% 0.008 30.15);
+  --color-brand-accent: oklch(62.42% 0.17 35.6);
+  --color-brand-teal: oklch(65.52% 0.11 195.4);
+  
+  --font-serif: "Manrope", serif;
+  --font-sans: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+  --text-6xl: 3.75rem;
+  --text-7xl: 4.5rem;
+  --text-8xl: 6rem;
+}
+
+@layer base {
+  :root {
+    --background: var(--color-brand-sand);
+    --foreground: var(--color-brand-deep);
+  }
+
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: var(--background);
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    background-blend-mode: overlay;
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-serif);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+}
+
+@layer components {
+  .editorial-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: clamp(1rem, 5vw, 4rem);
+  }
+
+  .scientific-card {
+    background: white;
+    border: 1px solid color-mix(in oklch, var(--color-brand-deep), transparent 92%);
+    transition: all 0.4s cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .scientific-card:hover {
+    border-color: var(--color-brand-accent);
+    transform: translateY(-2px);
+  }
+
+  .hero-mask {
+    mask-image: linear-gradient(to bottom, black 80%, transparent);
+  }
+
+  .nav-blur {
+    background: color-mix(in oklch, var(--color-brand-sand), transparent 10%);
+    backdrop-filter: blur(20px);
+  }
+
+  .scan-line {
+    width: 100%;
+    height: 2px;
+    background: var(--color-brand-accent);
+    position: absolute;
+    top: 0;
+    left: 0;
+    animation: scan 3s ease-in-out infinite;
+    z-index: 30;
+    box-shadow: 0 0 15px var(--color-brand-accent);
+  }
+
+  @keyframes scan {
+    0%, 100% { top: 0% }
+    50% { top: 100% }
+  }
+}

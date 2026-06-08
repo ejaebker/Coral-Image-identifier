@@ -32,41 +32,47 @@ The project features a robust data processing pipeline:
 
 ### 1. Environment Setup
 ```bash
-conda activate tf_env
+# Python Environment (Backend)
 pip install -r requirements.txt
+
+# Node Environment (Frontend)
+cd frontend
+npm install
 ```
 
-### 2. Run the Inference API (Fastest way to test)
+### 2. Start the Application (Complete Stack)
+To run the full "CoralID" platform, you need to start both the inference engine and the dashboard.
+
+**Terminal 1: FastAPI Inference Server**
 ```bash
 python src/api/server.py
 ```
-*   **Test it**: Open [http://localhost:8000/docs](http://localhost:8000/docs) in your browser to use the interactive dashboard.
 
-### 3. Full Data Pipeline (Master Script)
-To run the entire workflow (Crawl -> Process -> Balance -> Train -> Evaluate) with one command:
+**Terminal 2: React Editorial Dashboard**
 ```bash
-python main.py
+cd frontend
+npm run dev
 ```
-*   **Note**: This will skip the manual cleaning step. To manually prune data, run `python src/data/cleaner.py` before Step 3.
 
-### 4. Manual Execution (Sub-stages)
-1. **Crawl & Process**:
-   ```bash
-   python src/data/crawler.py
-   python src/core/processor.py
-   ```
-2. **Clean & Balance**:
-   ```bash
-   python src/data/cleaner.py  # Use 'k' to keep, 'd' to delete
-   python src/data/balancer.py
-   ```
-3. **Train & Evaluate**:
-   ```bash
-   python src/training/train.py
-   ```
+### 3. Usage
+- **Web UI**: Open [http://localhost:5173/](http://localhost:5173/) to identify specimens.
+- **API Docs**: Visit [http://localhost:8000/docs](http://localhost:8000/docs) for technical telemetry.
+
+---
+
+## 🌐 Web Dashboard (CoralID)
+The **CoralID** dashboard (v4.0) is a high-fidelity "Scientific Editorial" interface designed for biological research.
+
+### ✨ Key Features
+- **Neural Ingestor**: An advanced HUD-style upload zone with technical telemetry and real-time scan-line visualization.
+- **Research Archives**: Automatic local persistence of taxonomic runs. Every identification is saved to your browser's history with confidence scores and timestamps.
+- **Validation Pipeline**: A static infographic visualizing the 4-stage neural validation process (Preprocessing, Extraction, Analysis, Result).
+- **Editorial Foundations**: Designed with **OKLCH colors**, **fluid typography** (Manrope/Inter/JetBrains Mono), and a tactile **editorial grain** texture.
+
+---
 
 ## ✅ Current Status
-- **V3.0 In Progress**: Modular Architecture and Inference API implemented.
+- **V4.0 Released**: Professional Editorial Dashboard and Research Archives implemented.
 - **Model**: Transfer Learning (MobileNetV2) with automated TFLite/Keras export.
 - **API**: FastAPI server with CORS support and automated preprocessing.
 
@@ -79,5 +85,7 @@ python main.py
 - [x] Export Model for Web/Mobile deployment (.tflite)
 - [x] Modular Project Refactor (V3.0)
 - [x] FastAPI Inference Server (V3.0)
+- [x] Scientific Editorial Dashboard (V4.0)
+- [x] Local Storage Research Archives (V4.0)
 - [ ] Expand dataset to 10+ common reef coral classes
 - [ ] Active Learning Feedback Loop

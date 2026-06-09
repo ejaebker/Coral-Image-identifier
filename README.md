@@ -87,5 +87,10 @@ The **CoralID** dashboard (v4.0) is a high-fidelity "Scientific Editorial" inter
 - [x] FastAPI Inference Server (V3.0)
 - [x] Scientific Editorial Dashboard (V4.0)
 - [x] Local Storage Research Archives (V4.0)
-- [ ] Expand dataset to 10+ common reef coral classes
-- [ ] Active Learning Feedback Loop
+- [ ] Implement Reddit Scraping via **PRAW** (r/ReefTank, r/CoralReef)
+- [ ] Integrate iNaturalist API for research-grade observations
+- [ ] Expand dataset to 20+ common reef coral classes
+- [ ] Active Learning Feedback Loop (User-corrected labels)
+
+## 📡 Future Data Acquisition
+To improve model accuracy and taxonomic breadth, we are shifting focus towards high-quality, verified data sources. This includes hobbyist-driven data (Reddit), citizen science (iNaturalist), and professional photography (Flickr). Detailed implementation specs can be found in `proposed_changes.txt`.

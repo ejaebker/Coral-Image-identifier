@@ -78,5 +78,12 @@
             {"url": "https://tidalgardens.com/corals/lps/flower-pot-corals-goniopora.html", "target_class": "goniopora"},
             {"url": "https://www.tidalgardens.com/corals/mushrooms.html", "target_class": "mushroom"}
         ]
+    },
+    "reddit": {
+        "subreddits": ["ReefTank", "CoralReef"],
+        "limit_per_query": 50
+    },
+    "inaturalist": {
+        "limit_per_class": 50
     }
 }

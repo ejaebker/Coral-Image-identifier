@@ -78,10 +78,10 @@ def build_model(hp, num_classes):
   dropout_rate = hp.Float('dropout', min_value=0.1, max_value=0.5, step=0.1)
   learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
 
-  #TRansfer learning base
-  base_model = tf.keras.applications.MobileNetV2(input_shape=(224, 224, 3),
-                                               include_top=False,
-                                               weights='imagenet')
+  # Transfer learning base - EfficientNetV2-B0
+  base_model = tf.keras.applications.EfficientNetV2B0(input_shape=(224, 224, 3),
+                                                     include_top=False,
+                                                     weights='imagenet')
   base_model.trainable = False
 
   model = tf.keras.Sequential([
@@ -92,8 +92,7 @@ def build_model(hp, num_classes):
     tf.keras.layers.RandomBrightness(factor=0.2),
     tf.keras.layers.RandomContrast(factor=0.2),
     
-    # Preprocessing & Backbone
-    tf.keras.layers.Rescaling(1./127.5, offset=-1),
+    # Backbone (EfficientNetV2 has built-in normalization layer, so we do not rescale)
     base_model,
     tf.keras.layers.GlobalAveragePooling2D(),
     tf.keras.layers.Dropout(dropout_rate),
@@ -151,7 +150,8 @@ def run_training():
         mode='max'
     )
 
-    epochs = 20
+    epochs = 15
+    print("\n--- Stage 1: Training the Classification Head ---")
     history = model.fit(
       train_ds,
       validation_data=validate_ds,
@@ -160,7 +160,56 @@ def run_training():
       class_weight=class_weight_dict
     )
 
+    # Stage 2: Fine-Tuning the Backbone
+    base_model = None
+    for layer in model.layers:
+        if 'efficientnetv2' in layer.name:
+            base_model = layer
+            break
+
+    if base_model:
+        print("\n--- Stage 2: Fine-Tuning the EfficientNetV2 Backbone ---")
+        base_model.trainable = True
+        
+        # Freeze the bottom 200 layers, leaving only the top layers unfrozen for fine-tuning
+        # (EfficientNetV2-B0 has ~270 layers total)
+        fine_tune_at = 200
+        for layer in base_model.layers[:fine_tune_at]:
+            layer.trainable = False
+        for layer in base_model.layers[fine_tune_at:]:
+            layer.trainable = True
+
+        # Recompile with a very low learning rate to avoid destroying pre-trained weights
+        model.compile(
+            optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5),
+            loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+            metrics=['accuracy']
+        )
+
+        early_stopping_fine = tf.keras.callbacks.EarlyStopping(
+            monitor='val_loss',
+            patience=3,
+            restore_best_weights=True
+        )
+
+        fine_tune_epochs = 10
+        history_fine = model.fit(
+            train_ds,
+            validation_data=validate_ds,
+            epochs=fine_tune_epochs,
+            callbacks=[early_stopping_fine, cp_callback],
+            class_weight=class_weight_dict
+        )
+        history = history_fine # Use fine-tuning history for final evaluations
+    else:
+        print("\n[WARNING] Could not locate EfficientNetV2 layer for fine-tuning. Skipping Stage 2.")
+
     model.summary()
+
+    # Load the absolute best weights saved by checkpoint before exporting
+    if os.path.exists(checkpoint_path):
+        print(f"Loading best weights from {checkpoint_path}...")
+        model = tf.keras.models.load_model(checkpoint_path)
 
     # Export to TFLite for deployment
     print("\nExporting model to TFLite...")

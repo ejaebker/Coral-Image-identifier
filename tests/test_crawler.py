@@ -8,7 +8,7 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from src.data.crawler import SearchEngineScraper, RetailerScraper
+from src.data.crawler import SearchEngineScraper, RetailerScraper, RedditScraper
 
 @pytest.fixture
 def mock_dataset_dir(tmp_path):
@@ -90,3 +90,61 @@ def test_retailer_scraper_scrape_tidal_gardens(mock_get, mock_dataset_dir):
     
     assert os.path.exists(os.path.join(mock_dataset_dir, "acropora"))
     assert mock_get.call_count >= 3
+
+def test_reddit_scraper_init(mock_dataset_dir):
+    with patch.dict(os.environ, {"REDDIT_CLIENT_ID": "test_id", "REDDIT_CLIENT_SECRET": "test_secret"}):
+        scraper = RedditScraper(mock_dataset_dir)
+        assert scraper.dataset_dir == mock_dataset_dir
+        # praw.Reddit is lazy, so we just check if it was attempted or if the obj exists
+        assert scraper.reddit is not None
+
+@patch('requests.get')
+@patch('praw.Reddit')
+def test_reddit_scraper_scrape(mock_praw, mock_get, mock_dataset_dir):
+    with patch.dict(os.environ, {"REDDIT_CLIENT_ID": "test_id", "REDDIT_CLIENT_SECRET": "test_secret"}):
+        scraper = RedditScraper(mock_dataset_dir)
+        
+        # Mock Reddit structure: reddit.subreddit().search() -> list of submissions
+        mock_submission = MagicMock()
+        mock_submission.url = "http://example.com/coral.jpg"
+        
+        mock_subreddit = MagicMock()
+        mock_subreddit.search.return_value = [mock_submission]
+        
+        scraper.reddit.subreddit.return_value = mock_subreddit
+        
+        # Mock image download
+        mock_get.return_value.content = b"fake_image_data"
+        
+        scraper.scrape(["ReefTank"], {"acropora": ["acropora"]}, 10)
+        
+        assert os.path.exists(os.path.join(mock_dataset_dir, "acropora"))
+        scraper.reddit.subreddit.assert_called_with("ReefTank")
+        assert mock_get.called
+
+@patch('requests.get')
+def test_inaturalist_scraper(mock_get, mock_dataset_dir):
+    from src.data.crawler import INaturalistScraper
+    scraper = INaturalistScraper(mock_dataset_dir)
+    
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "results": [
+            {
+                "taxon": {"name": "Acropora palmata"},
+                "photos": [{"url": "https://example.com/photos/123/square.jpg"}]
+            }
+        ]
+    }
+    
+    mock_img_response = MagicMock()
+    mock_img_response.content = b"fake_image_data"
+    
+    mock_get.side_effect = [mock_response, mock_img_response]
+    
+    scraper.scrape({"acropora": ["Acropora"]}, limit_per_class=1)
+    
+    assert os.path.exists(os.path.join(mock_dataset_dir, "acropora"))
+    assert mock_get.call_count >= 2
+

@@ -114,3 +114,38 @@ def evaluate_model(model, history, val_ds, class_names, output_dir="models/evalu
     print("\n" + "="*50)
     print("EVALUATION COMPLETE")
     print("="*50)
+
+if __name__ == "__main__":
+    import sys
+    # Path setup for direct script execution
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+
+    from src.training.train import load_data
+
+    model_path = "models/coral_model_best.keras"
+    eval_dir = "models/evaluation"
+
+    if not os.path.exists(model_path):
+        print(f"Error: Trained model not found at '{model_path}'. Please run training first.")
+        sys.exit(1)
+
+    print(f"Loading model from {model_path}...")
+    model = tf.keras.models.load_model(model_path)
+
+    print("Loading dataset...")
+    _, validate_ds, class_names, num_classes, _ = load_data()
+
+    # Create a mock history object
+    class MockHistory:
+        def __init__(self):
+            self.history = {
+                'accuracy': [0.78],
+                'val_accuracy': [0.78],
+                'loss': [0.5],
+                'val_loss': [0.5]
+            }
+
+    history = MockHistory()
+    evaluate_model(model, history, validate_ds, class_names, output_dir=eval_dir)

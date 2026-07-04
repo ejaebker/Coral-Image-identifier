@@ -3,8 +3,13 @@ import time
 import json
 import requests
 import concurrent.futures
+import praw
 from bs4 import BeautifulSoup
 from tqdm import tqdm
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # --- ROBUST SEARCH ENGINE SCRAPER ---
 from icrawler.builtin import BingImageCrawler
@@ -34,6 +39,14 @@ class SearchEngineScraper:
 
             for query in keys:
                 query_slug = query.replace(' ', '_').lower()
+                # Clean up query slug for file checking (replace invalid characters)
+                clean_slug = "".join([c if c.isalnum() or c in "_-" else "_" for c in query_slug])
+                
+                # Query-level skip check to avoid redundant scraping
+                if os.path.exists(class_target_dir) and any(f.startswith(f"scraped_bing_{clean_slug}") for f in os.listdir(class_target_dir)):
+                    pbar.write(f"  [SKIP] Bing data already exists for query '{query}' in class '{class_name}'.")
+                    pbar.update(1)
+                    continue
                 
                 crawler = BingImageCrawler(
                     downloader_cls=CustomBingDownloader,
@@ -41,7 +54,8 @@ class SearchEngineScraper:
                     log_level=50
                 )
                 
-                crawler.downloader.query_slug = query_slug
+                # Ensure the query slug matches the cleaned filename prefix
+                crawler.downloader.query_slug = clean_slug
                 crawler.crawl(keyword=query, max_num=images_per_keyword)
                 
                 downloaded = crawler.downloader.fetched_num
@@ -170,6 +184,165 @@ class RetailerScraper:
                 success_count += future.result()
         return success_count
 
+class RedditScraper:
+    def __init__(self, dataset_dir):
+        self.dataset_dir = dataset_dir
+        self.reddit = None
+        
+        # Load credentials from environment
+        client_id = os.getenv("REDDIT_CLIENT_ID")
+        client_secret = os.getenv("REDDIT_CLIENT_SECRET")
+        user_agent = os.getenv("REDDIT_USER_AGENT", "CoralImageIdentifier/1.0")
+
+        if client_id and client_secret:
+            try:
+                self.reddit = praw.Reddit(
+                    client_id=client_id,
+                    client_secret=client_secret,
+                    user_agent=user_agent
+                )
+            except Exception as e:
+                print(f"Failed to initialize PRAW: {e}")
+
+    def scrape(self, subreddits, coral_classes, limit_per_query):
+        if not self.reddit:
+            print("[ERROR] Reddit scraper not initialized. Check environment variables.")
+            return
+
+        print(f"\n--- Scraping Reddit: {', '.join(subreddits)} ---")
+        
+        for class_name, queries in coral_classes.items():
+            target_dir = os.path.join(self.dataset_dir, class_name)
+            os.makedirs(target_dir, exist_ok=True)
+            
+            # Combine queries into a search string or run them individually
+            # Searching for the class name in the subreddits is usually most effective
+            all_urls = []
+            for query in queries:
+                for sub_name in subreddits:
+                    try:
+                        subreddit = self.reddit.subreddit(sub_name)
+                        # Search for image-rich posts
+                        submissions = subreddit.search(query, limit=limit_per_query)
+                        
+                        for sub in submissions:
+                            # Basic image filtering
+                            if sub.url.endswith(('.jpg', '.jpeg', '.png')):
+                                all_urls.append(sub.url)
+                            elif hasattr(sub, 'is_reddit_media_domain') and sub.is_reddit_media_domain:
+                                # This handles some reddit-hosted images that might not have extensions in the URL
+                                if 'image' in sub.post_hint if hasattr(sub, 'post_hint') else '':
+                                    all_urls.append(sub.url)
+                    except Exception as e:
+                        print(f"Error searching r/{sub_name} for '{query}': {e}")
+
+            if all_urls:
+                unique_urls = list(set(all_urls))
+                print(f"Found {len(unique_urls)} potential images for '{class_name}' on Reddit.")
+                self._download_list(unique_urls, target_dir, f"reddit_{class_name}")
+
+    def _download_single_image(self, url, target_dir, prefix, index):
+        try:
+            timestamp = int(time.time() * 1000)
+            save_name = f"scraped_{prefix}_{timestamp}_{index}.jpg"
+            save_path = os.path.join(target_dir, save_name)
+            
+            img_data = requests.get(url, timeout=10).content
+            with open(save_path, 'wb') as f:
+                f.write(img_data)
+            return 1
+        except:
+            return 0
+
+    def _download_list(self, urls, target_dir, prefix):
+        success_count = 0
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            futures = [executor.submit(self._download_single_image, url, target_dir, prefix, i) for i, url in enumerate(urls)]
+            for future in tqdm(concurrent.futures.as_completed(futures), total=len(urls), desc=f"Reddit: {prefix}", leave=False):
+                success_count += future.result()
+        return success_count
+
+class INaturalistScraper:
+    def __init__(self, dataset_dir):
+        self.dataset_dir = dataset_dir
+        self.headers = {
+            'User-Agent': 'CoralImageIdentifier/1.0'
+        }
+
+    def scrape(self, coral_classes, limit_per_class):
+        print(f"\n--- Scraping iNaturalist API ---")
+        
+        # Map hobbyist classes to their true scientific genus/family names on iNaturalist
+        inat_taxa_mapping = {
+            "acropora": ["Acropora"],
+            "zoanthid": ["Zoanthidae", "Zoanthus", "Palythoa"],
+            "montipora": ["Montipora"],
+            "frogspawn": ["Fimbriaphyllia divisa"],
+            "torch": ["Euphyllia glabrescens"],
+            "hammer": ["Fimbriaphyllia ancora"],
+            "chalice": ["Echinophyllia", "Mycedium"],
+            "scolymia": ["Homophyllia australis"],
+            "goniopora": ["Goniopora"],
+            "mushroom": ["Discosoma", "Ricordea", "Rhodactis"]
+        }
+        
+        for class_name in coral_classes.keys():
+            target_dir = os.path.join(self.dataset_dir, class_name)
+            os.makedirs(target_dir, exist_ok=True)
+            
+            # Check if iNaturalist files already exist to avoid duplicate queries
+            if any(f.startswith("scraped_inaturalist") for f in os.listdir(target_dir)):
+                print(f"  [SKIP] iNaturalist data already exists for '{class_name}'.")
+                continue
+                
+            taxa_queries = inat_taxa_mapping.get(class_name, [class_name])
+            all_urls = []
+            for taxon_name in taxa_queries:
+                try:
+                    url = f"https://api.inaturalist.org/v1/observations?taxon_name={taxon_name}&quality_grade=research&per_page={limit_per_class}"
+                    r = requests.get(url, headers=self.headers, timeout=15)
+                    if r.status_code != 200:
+                        continue
+                        
+                    data = r.json()
+                    results = data.get('results', [])
+                    for obs in results:
+                        for photo in obs.get('photos', []):
+                            photo_url = photo.get('url')
+                            if photo_url:
+                                medium_url = photo_url.replace('square', 'medium')
+                                all_urls.append(medium_url)
+                                
+                    time.sleep(0.5)
+                except Exception as e:
+                    print(f"Error querying iNaturalist for '{taxon_name}': {e}")
+            
+            if all_urls:
+                unique_urls = list(set(all_urls))[:limit_per_class]
+                print(f"Found {len(unique_urls)} unique iNaturalist images for '{class_name}'.")
+                self._download_list(unique_urls, target_dir, f"inaturalist_{class_name}")
+
+    def _download_single_image(self, url, target_dir, prefix, index):
+        try:
+            timestamp = int(time.time() * 1000)
+            save_name = f"scraped_{prefix}_{timestamp}_{index}.jpg"
+            save_path = os.path.join(target_dir, save_name)
+            
+            img_data = requests.get(url, timeout=10).content
+            with open(save_path, 'wb') as f:
+                f.write(img_data)
+            return 1
+        except:
+            return 0
+
+    def _download_list(self, urls, target_dir, prefix):
+        success_count = 0
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            futures = [executor.submit(self._download_single_image, url, target_dir, prefix, i) for i, url in enumerate(urls)]
+            for future in tqdm(concurrent.futures.as_completed(futures), total=len(urls), desc=f"iNaturalist: {prefix}", leave=False):
+                success_count += future.result()
+        return success_count
+
 def run_crawler():
     # Load Configuration
     with open("config.json", "r") as f:
@@ -180,21 +353,9 @@ def run_crawler():
     CORAL_CLASSES = config.get("coral_classes", {})
     RETAILERS = config.get("retailers", {})
 
-    # Determine which classes actually need scraping
-    active_coral_classes = {}
-    for class_name, queries in CORAL_CLASSES.items():
-        class_dir = os.path.join(TARGET_DIR, class_name)
-        if os.path.exists(class_dir) and len(os.listdir(class_dir)) > 0:
-            print(f"  [SKIP] Class '{class_name}' already has data in {TARGET_DIR}. Skipping Bing scrape.")
-        else:
-            active_coral_classes[class_name] = queries
-
-    # 1. RUN BROAD SEARCH (BING) - Only for active classes
-    if active_coral_classes:
-        search_scraper = SearchEngineScraper(TARGET_DIR)
-        search_scraper.scrape(active_coral_classes, IMAGES_PER_KEY)
-    else:
-        print("\n[INFO] All coral classes already have Bing data. No new scraping needed.")
+    # 1. RUN BROAD SEARCH (BING)
+    search_scraper = SearchEngineScraper(TARGET_DIR)
+    search_scraper.scrape(CORAL_CLASSES, IMAGES_PER_KEY)
 
     # 2. RUN TARGETED RETAILER SCRAPE
     scraper = RetailerScraper(TARGET_DIR)
@@ -218,6 +379,39 @@ def run_crawler():
             print(f"  [SKIP] Tidal Gardens data already exists for '{target_class}'.")
             continue
         scraper.scrape_tidal_gardens(entry["url"], target_class)
+
+    # 3. RUN REDDIT SCRAPE (Disabled for now)
+    # if "reddit" in config:
+    #     reddit_config = config["reddit"]
+    #     reddit_scraper = RedditScraper(TARGET_DIR)
+    #     
+    #     # Only scrape if reddit_scraper was initialized (env vars exist)
+    #     if reddit_scraper.reddit:
+    #         active_reddit_classes = {}
+    #         for class_name, queries in CORAL_CLASSES.items():
+    #             class_dir = os.path.join(TARGET_DIR, class_name)
+    #             if os.path.exists(class_dir) and any(f.startswith("scraped_reddit") for f in os.listdir(class_dir)):
+    #                 print(f"  [SKIP] Reddit data already exists for '{class_name}'.")
+    #                 continue
+    #             active_reddit_classes[class_name] = queries
+    #         
+    #         if active_reddit_classes:
+    #             reddit_scraper.scrape(
+    #                 reddit_config.get("subreddits", []),
+    #                 active_reddit_classes,
+    #                 reddit_config.get("limit_per_query", 50)
+    #             )
+    #     else:
+    #         print("\n[SKIP] Reddit scraper not configured with environment variables. Skipping...")
+
+    # 4. RUN INATURALIST SCRAPE
+    if "inaturalist" in config:
+        inat_config = config["inaturalist"]
+        inat_scraper = INaturalistScraper(TARGET_DIR)
+        inat_scraper.scrape(
+            CORAL_CLASSES,
+            inat_config.get("limit_per_class", 50)
+        )
 
     print("\nCrawl Complete. Data organized in data/raw/")
     

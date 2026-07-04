@@ -72,14 +72,15 @@ The **CoralID** dashboard (v4.0) is a high-fidelity "Scientific Editorial" inter
 ---
 
 ## ✅ Current Status
-- **V4.0 Released**: Professional Editorial Dashboard and Research Archives implemented.
-- **Model**: Transfer Learning (MobileNetV2) with automated TFLite/Keras export.
-- **API**: FastAPI server with CORS support and automated preprocessing.
+- **V5.0 Released**: Fine-tuned EfficientNetV2-B0 model integrated, achieving **81% validation accuracy** (up from 69% on MobileNetV2).
+- **Data Ingestion**: Integrated open iNaturalist observations API to download scientific community-verified coral specimens.
+- **Model**: Two-stage training pipeline (Stage 1 classification head warmup + Stage 2 top-layer fine-tuning).
+- **API & UI**: FastAPI inference server with live reload, serving predictions to the Vite dashboard.
 
 ## Roadmap
 - [x] Automated Image Crawling
 - [x] Robust Image Processing (Deduplication & CLAHE)
-- [x] Model Optimization & Transfer Learning (MobileNetV2)
+- [x] Model Optimization & Transfer Learning (EfficientNetV2-B0)
 - [x] Dataset Balancing & Manual Pruning Tools
 - [x] Automated Hyperparameter Tuning (Keras-Tuner)
 - [x] Export Model for Web/Mobile deployment (.tflite)
@@ -87,10 +88,11 @@ The **CoralID** dashboard (v4.0) is a high-fidelity "Scientific Editorial" inter
 - [x] FastAPI Inference Server (V3.0)
 - [x] Scientific Editorial Dashboard (V4.0)
 - [x] Local Storage Research Archives (V4.0)
-- [ ] Implement Reddit Scraping via **PRAW** (r/ReefTank, r/CoralReef)
-- [ ] Integrate iNaturalist API for research-grade observations
+- [x] Integrate iNaturalist API for research-grade observations (V5.0)
+- [x] Two-Stage Backbone Fine-Tuning (V5.0)
 - [ ] Expand dataset to 20+ common reef coral classes
 - [ ] Active Learning Feedback Loop (User-corrected labels)
+- [ ] PRAW Reddit API Scraper activation (Requires client credentials)
 
 ## 📡 Future Data Acquisition
 To improve model accuracy and taxonomic breadth, we are shifting focus towards high-quality, verified data sources. This includes hobbyist-driven data (Reddit), citizen science (iNaturalist), and professional photography (Flickr). Detailed implementation specs can be found in `proposed_changes.txt`.

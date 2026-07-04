@@ -17,3 +17,4 @@ fastapi
 uvicorn
 python-multipart
 praw
+python-dotenv

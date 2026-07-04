@@ -43,10 +43,14 @@ The pipeline transforms raw, heterogeneous web-scraped images into a standardize
 *   **Purpose**: Instead of deleting images to balance the dataset, we "penalize" the model more for misclassifying minority classes. This allows the model to learn from the **entire** dataset without bias.
 
 ### 8. Hyperparameter Tuning
-*   **Action**: `src/training/train.py` uses **Keras Tuner** (Hyperband) to optimize the learning rate and dropout.
-*   **Purpose**: Scientifically determines the best configuration for the specific dataset rather than using defaults.
+*   **Action**: `src/training/train.py` uses **Keras Tuner** (Hyperband) to optimize the learning rate and dropout rate for the EfficientNetV2 dense classification head.
+*   **Purpose**: Scientifically determines the best initial classification head configuration for the dataset.
 
-### 9. Comprehensive Evaluation
+### 9. Two-Stage Fine-Tuning
+*   **Action**: Unfreezes the top convolutional layers of the **EfficientNetV2-B0** base model (from layer index 200 to 270) and trains with a very low learning rate (`1e-5`) for another 10 epochs.
+*   **Purpose**: Specializes the high-level convolutional feature detectors on fine coral skeleton structures and polyp patterns instead of general ImageNet features.
+
+### 10. Comprehensive Evaluation
 *   **Action**: `src/training/evaluator.py` generates metrics after training.
 *   **Result**: Produces a Confusion Matrix, Classification Report (Precision/Recall), and a visual grid of sample predictions to verify model reliability.
 
@@ -58,7 +62,9 @@ The pipeline transforms raw, heterogeneous web-scraped images into a standardize
 *   **Final Training Set**: `data/processed/` (with mathematical weighting)
 
 ## ⚙️ Configuration
+*   **Base Network**: EfficientNetV2-B0 (with built-in normalization, no rescaling layer needed)
 *   **Image Size**: 224x224
 *   **CLAHE Clip Limit**: 2.0
 *   **CLAHE Tile Grid**: 8x8
 *   **Export Quality**: 95% JPEG
+*   **Optimizers**: Adam (Initial: Tuned, Fine-Tuning: 1e-5)
